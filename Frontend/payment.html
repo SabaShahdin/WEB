@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Passenger Interface</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+  <style>
+    #map {
+      width: 100%;
+      height: 500px;
+    }
+
+    /* Modal Content */
+    .modal-content {
+      background-color: #e5d1eb;
+      /* A very light grey for better contrast */
+      padding: 30px;
+      border: 1px solid #210440;
+      /* Matching border color with your button */
+      width: 50%;
+      /* Adjust the width to create a more balanced look */
+      max-width: 500px;
+      /* Set a max-width */
+      text-align: center;
+      border-radius: 10px;
+      /* Slightly larger rounded corners */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      /* Slightly stronger shadow for better visibility */
+      font-family: 'Montserrat', sans-serif;
+      /* Matching website font */
+      color: #210440;
+      /* Dark text for better readability */
+    }
+
+    /* Modal Text */
+    .modal-content p {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #210440;
+      /* Dark text color */
+    }
+
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Passenger Interface</h1>
+  <div id="map"></div>
+  <div id="messageModal" class="modal" style="visibility: hidden;">
+    <div class="modal-content">
+      <span id="closeMessageModal" class="close">&times;</span>
+      <p id="messageText"></p>
+    </div>
+  </div>
+  <div id="paymentDetails"></div>
+  <div id="passengerDetails"></div>
+
+  <script>
+    let passengerSocket;
+    let driverMarker = null;
+    let map;
+    let passengerId = null;  // Set this dynamically based on your logic
+    let driver_lat = null;
+    let driver_lng = null;
+    let pickup_latitude = null;
+    let pickup_longitude = null;
+    let dropoff_latitude = null;
+    let dropoff_longitude = null;
+    let rideId = null;
+    let licensePlate = null;
+    let paymentMethod = null;
+    let fare1 = null;
+    let driverSocket;
+    let driversId = null;
+    // Initialize the map
+    function initializeMap() {
+      map = L.map('map').setView([31.5497, 74.3436], 13);  // Default to Lahore
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+    }
+    function updateDriverLocation(location) {
+      try {
+        const { lat, lng } = location;
+        driver_lat = lat;
+        driver_lng = lng;
+        if (driverMarker) {
+          driverMarker.setLatLng([driver_lat, driver_lng]);
+          map.panTo([driver_lat, driver_lng]);
+        } else {
+          // Create a new marker if it doesn't exist
+          driverMarker = L.marker([driver_lat, driver_lng]).addTo(map)
+            .bindPopup("Driver is here!")
+            .openPopup();
+        }
+      } catch (err) {
+        showMessage("Error updating driver location:", err);
+      }
+    }
+
+    function reconnectPassengerSocket() {
+      if (passengerSocket.readyState !== WebSocket.OPEN) {
+        passengerSocket = new WebSocket("ws://localhost:8080");
+        passengerSocket.onopen = function () {
+        };
+        passengerSocket.onmessage = function (event) {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.passengerId === passengerId) {
+              displayPassengerDetails(data);
+              if (data.type === "rideStarted") {
+                showMessage("Ride started!");
+                updateDriverLocation(data.location);
+              } else if (data.type === "locationUpdate") {
+                updateDriverLocation(data.location);
+              }
+            }
+          } catch (err) {
+            showMessage("Error parsing driver message:", err);
+          }
+        };
+
+        passengerSocket.onerror = function (error) {
+          console.error("WebSocket error:", error);
+        };
+
+        passengerSocket.onclose = function (event) {
+          console.log("Passenger WebSocket disconnected:", event);
+          setTimeout(reconnectPassengerSocket, 1000);  // Reconnect on close
+        };
+      }
+    }
+    function sendRideDetailsToPassengerAndDriver(rideDetails) {
+      // Handle Passenger WebSocket
+      passengerSocket.onopen = () => {
+        const passengerMessage = JSON.stringify({
+          type: 'passenger',
+          action: 'rideRequest',
+          data: rideDetails,
+        });
+        passengerSocket.send(passengerMessage);
+      };
+    
+      passengerSocket.onmessage = (message) => {
+        const data = JSON.parse(message.data);
+        const passengerStatus = document.getElementById('passenger-status');
+        if (data.type === 'rideConfirmation') {
+          showMessage('Ride confirmed');
+          passengerStatus.innerHTML = `
+            <p><strong>Pickup Location:</strong> ${data.data.pickup}</p>
+            <p><strong>Destination:</strong> ${data.data.destination}</p>
+            <p><strong>Driver:</strong> ${data.data.driverName || 'Not assigned yet'}</p>
+            <p><strong>Status:</strong> ${data.data.status || 'Waiting for driver'}</p>`;
+        } else {
+          showMessage('Ride cancelled');
+          passengerStatus.innerHTML = `
+            <p><strong>Pickup Location:</strong> ${data.data.pickup}</p>
+            <p><strong>Destination:</strong> ${data.data.destination}</p>
+            <p><strong>Driver:</strong> ${data.data.driverName || 'Not assigned yet'}</p>
+            <p><strong>Status:</strong> ${data.data.status || 'Waiting for driver'}</p>`;
+        }
+      };
+    
+      passengerSocket.onerror = (error) => {
+        console.error('Passenger WebSocket error:', error);
+      };
+    
+   
+    
+          // Driver is connected; proceed with sending the ride details
+          if (driverSocket && driverSocket.readyState === WebSocket.OPEN) {
+            const driverMessage = JSON.stringify({
+              type: 'driver',
+              action: 'newRide',
+              data: {
+                passengerId: rideDetails.passenger_id,
+                pickup: {
+                  latitude: rideDetails.pickup_latitude,
+                  longitude: rideDetails.pickup_longitude,
+                },
+                dropoff: {
+                  latitude: rideDetails.dropoff_latitude,
+                  longitude: rideDetails.dropoff_longitude,
+                },
+                fare: rideDetails.fare,
+                seats: rideDetails.seats,
+              },
+            });
+            driverSocket.send(driverMessage);
+    
+            driverSocket.onmessage = (message) => {
+              const data = JSON.parse(message.data);
+              if (data.type === 'rideRequestResponse') {
+                showMessage('Driver accepted the ride');
+                const rideDetailsElement = document.getElementById('ride-details');
+                rideDetailsElement.innerHTML = `
+                  <p><strong>Pickup Location:</strong> ${data.data.pickup}</p>
+                  <p><strong>Destination:</strong> ${data.data.destination}</p>
+                  <p><strong>Status:</strong> ${data.data.status}</p>`;
+              }
+            };
+    
+            driverSocket.onerror = (error) => {
+              console.error('Driver WebSocket error:', error);
+            };
+    
+            driverSocket.onclose = () => {
+              console.log('Driver WebSocket disconnected');
+            };
+          } else {
+            showMessage('Driver WebSocket connection is not available.');
+          }
+          const driverId = String(rideDetails.driverId);
+          driversId = rideDetails.driverId; // Convert driverId to string for comparison
+          fetch('http://localhost:8081/api/connected-drivers') // Replace with your API endpoint
+    .then((response) => response.json())
+    .then((connectedDrivers) => {
+        console.log('Connected drivers:', connectedDrivers);
+        console.log('Assigned driver ID:', driverId);
+        console.log('Driver match:', connectedDrivers.includes(driverId));
+    
+        if (!connectedDrivers.includes(driverId)) {
+            showMessage('The assigned driver is not currently available. Please wait or select another driver.');
+            cancelRide();
+
+            // Add a delay of 3 seconds before redirecting
+            setTimeout(() => {
+                window.location.href = 'customer.html';
+            }, 3000); 
+            return;
+        }
+    })
+
+              .catch((error) => {
+                  console.error('Error fetching connected drivers:', error);
+              });
+          
+    }
+    
+  
+    function displayPassengerDetails(data) {
+      const passengerDetailsDiv = document.getElementById("passengerDetails");
+      passengerDetailsDiv.innerHTML = `
+        <p><strong>Passenger ID:</strong> ${data.passengerId}</p>
+        <p><strong>Passenger Name:</strong> ${data.name || "N/A"}</p>
+        <p><strong>Ride Status:</strong> ${data.status || "Unknown"}</p>
+      `;
+      console.log("Displayed passenger details:", data);
+    }
+    
+    document.addEventListener("DOMContentLoaded", function () {
+      initializeMap(); // Initialize the map when the page loads
+      const urlParams = new URLSearchParams(window.location.search);
+      paymentMethod = urlParams.get('paymentMethod');
+      passengerId = urlParams.get('passengerId');
+      rideId = urlParams.get('rideId');
+      licensePlate = urlParams.get('lisence');
+      let hasReachedPickup = false;
+      passengerSocket = new WebSocket("ws://localhost:8080");
+      passengerSocket.onopen = function () {
+        console.log("Passenger WebSocket connected");
+      };
+      const rideDetails = JSON.parse(sessionStorage.getItem("rideDetails"));
+      if (rideDetails) {
+        sendRideDetailsToPassengerAndDriver(rideDetails);
+        passengerId = rideDetails.passenger_id;
+        pickup_latitude = rideDetails.pickup_latitude;
+        pickup_longitude = rideDetails.pickup_longitude;
+        dropoff_latitude = rideDetails.dropoff_latitude;
+        dropoff_longitude = rideDetails.dropoff_longitude;
+        fare1 = rideDetails.fare;
+
+        if (pickup_latitude && pickup_longitude) {
+          L.marker([pickup_latitude, pickup_longitude])
+            .addTo(map)
+            .bindPopup("Pickup Location")
+            .openPopup();
+        }
+        // Show the pickup location on the map
+        if (dropoff_latitude && dropoff_longitude) {
+          L.marker([dropoff_latitude, dropoff_longitude])
+            .addTo(map)
+            .bindPopup("Drop off Location")
+            .openPopup();
+        }
+      } else {
+        console.error("No ride details found in session storage.");
+      }
+
+      passengerSocket.onmessage = function (event) {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.type === "rideStarted") {
+            showMessage("Ride started!");
+            updateDriverLocation(data.location);
+          } else if (data.type === "locationUpdate") {
+            updateDriverLocation(data.location); // Update driver's location
+          }
+        } catch (err) {
+          console.error("Error parsing WebSocket message:", err);
+        }
+      };
+
+      passengerSocket.onerror = function (error) {
+        console.error("WebSocket error:", error);
+      };
+
+      passengerSocket.onclose = function (event) {
+        console.log("Passenger WebSocket disconnected:", event);
+        setTimeout(reconnectPassengerSocket, 1000); // Reconnect on close
+      };
+      function checkDriverAtPickupLocation(pickup_latitude, pickup_longitude, driver_lat, driver_lng) {
+        const threshold = 0.0001; // Define a threshold for proximity
+        if (
+          Math.abs(pickup_latitude - driver_lat) <= threshold &&
+          Math.abs(pickup_longitude - driver_lng) <= threshold
+        ) {
+          showMessage("The driver has reached the pickup location.");
+          hasReachedPickup = true; // Update the state to indicate driver has reached pickup
+        } else {
+          console.log("Driver is still on the way to the pickup location.");
+        }
+      }
+
+      // Function to check if the driver has reached the drop-off location
+      function checkDriverAtDropoffLocation(dropoff_latitude, dropoff_longitude, driver_lat, driver_lng) {
+        const threshold = 0.0001; // Define a threshold for proximity
+        if (
+          Math.abs(dropoff_latitude - driver_lat) <= threshold &&
+          Math.abs(dropoff_longitude - driver_lng) <= threshold
+        ) {
+          showMessage("You have reached your destination!");
+          updateVehicleStatus(rideId);
+          completeRideStatus(rideId);
+          if (paymentMethod === 'Credit Card') {
+            payment();
+          } else {
+            window.location.href = 'Final.html';
+          }
+        } else {
+          console.log("Driver is still on the way to the drop-off location.");
+        }
+      }
+
+      // Function to update the driver's location on the map
+      function updateDriverLocation(location) {
+        try {
+          const { lat, lng } = location;
+
+          // Store the updated location
+          driver_lat = lat;
+          driver_lng = lng;
+          if (!hasReachedPickup) {
+            checkDriverAtPickupLocation(pickup_latitude, pickup_longitude, driver_lat, driver_lng);
+          } else {
+            checkDriverAtDropoffLocation(pickup_latitude, pickup_longitude, driver_lat, driver_lng);
+          }
+
+          if (driverMarker) {
+            driverMarker.setLatLng([driver_lat, driver_lng]);
+            map.panTo([driver_lat, driver_lng]);
+          } else {
+            driverMarker = L.marker([driver_lat, driver_lng])
+              .addTo(map)
+              .bindPopup("Driver is here!")
+              .openPopup();
+          }
+        } catch (err) {
+          console.error("Error updating driver location:", err);
+        }
+      }
+    });
+    function completeRideStatus(rideId) {
+      fetch('http://localhost:8081/real/api/update-complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          rideId: rideId,
+        }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Response from server:', data);
+          if (data.message) {
+            showMessage(data.message);
+          } else {
+            showMessage('Error updating ride status.');
+          }
+        })
+        .catch(error => {
+          console.error('Error updating ride status:', error);
+        });
+    }
+    function updateVehicleStatus(rideId) {
+      if (!licensePlate || !rideId) {
+        showMessage("Please fill in all the fields.");
+        return;
+      }
+      const data = {
+        licensePlate: licensePlate,
+        rideId: rideId
+      };
+      fetch('http://localhost:8081/real/api/update-vehicle-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            showMessage(data.error);
+          } else {
+            showMessage(data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showMessage('Something went wrong. Please try again later.');
+        });
+    }
+    function updateRideStatus(rideId) {
+      fetch('http://localhost:8081/real/api/update-ride', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          rideId: rideId,
+        }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.message) {
+            showMessage(data.message);
+          } else {
+            showMessage('Error updating ride status.');
+          }
+        })
+        .catch(error => {
+          console.error('Error updating ride status:', error);
+        });
+    }
+    async function payment() {
+      try {
+        const preturnUrl = 'http://localhost:5502/Frontend/Final.html'
+        const response = await fetch('http://localhost:8081/payment/pay', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+
+            amount: fare1, // Pass the amount (fare) to the backend
+            meetingDetails: {
+              passengerId: passengerId,
+              rideId: rideId,
+              paymentMethod: 'Credit Card'
+            },
+            returnUrl: preturnUrl, // Pass the dynamically constructed return URL
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.url) {
+          window.location.href = data.url; // Redirect to Stripe Checkout
+        } else {
+          showMessage("Error: Payment session could not be created. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error during payment request:", error);
+        showMessage("An error occurred. Please try again.");
+      }
+    }
+    // Modal Elements
+    const modal = document.getElementById("messageModal");
+    const messageText = document.getElementById("messageText");
+    const closeModalButton = document.getElementById("closeMessageModal");
+    function showMessage(message) {
+      messageText.textContent = message;
+      modal.style.display = "flex";
+      modal.style.visibility = "visible";
+    }
+    closeModalButton.addEventListener('click', () => {
+      modal.style.display = "none";
+    });
+    window.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+    function cancelRide() {
+      fetch(`http://localhost:8081/cancel/api/cancel-ride/${rideId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ driversId }) // Send userId in the request body
+      })
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error(`Failed to cancel ride: ${response.statusText}`);
+              }
+              return response.json();
+          })
+          .then(() => {
+              showMessage(`Ride ${rideId} cancelled successfully.`);
+              updateVehicleStatus();
+              window.location.href = 'real-time.html';
+          })
+          .catch(error => {
+
+              showMessage('Failed to cancel the ride. Please try again.', error);
+          });
+  }
+
+  function updateVehicleStatus() {
+      showMessage("I entered it ");
+      if (!licensePlate || !rideId) {
+          showMessage("Please fill in all the fields.");
+          return;
+      }
+      const data = {
+          licensePlate: licensePlate,
+          rideId: rideId
+      };
+      fetch('http://localhost:8081/real/api/update-vehicle-status', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+      })
+          .then(response => response.json())
+          .then(data => {
+              if (data.error) {
+                  showMessage(data.error);
+              } else {
+                  showMessage(data.message);
+              }
+          })
+          .catch(error => {
+              showMessage('Something went wrong. Please try again later.', error);
+          });
+  }
+
+
+
+  </script>
+
+</body>
+
+</html>

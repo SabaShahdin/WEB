@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>On Ride</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <div class="navbar">
+        <img src="./images/logo1.png" alt="On Ride Logo" class="logo">
+        <div class="navbar-links">
+            <a href="#home">Home</a>
+            <a href="#about">About Us</a>
+            <a href="#why-us">Why Us</a> <!-- Added Why Us link -->
+            <a href="#contact-us">Contact Us</a>
+            <a href="login copy.html">Login</a>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container" id="home">
+        <div class="overlay"></div>
+        <div class="content">
+            <h1>Welcome to On Ride</h1>
+            <p>On Ride - Moving You Forward.</p>
+            <a href="logindriver.html" class="login-btn-driver">Login as a Driver</a>
+            <a href="login copy.html" class="login-btn-passenger">Login as a Passenger</a>
+        </div>
+    </div>
+
+    <!-- About Section -->
+    <div class="about-section" id="about">
+        <div class="feature">
+            <div class="feature-image">
+                <img src="./images/tracking.jpg" alt="Real-Time Vehicle Tracking">
+            </div>
+            <div class="feature-text">
+                <h3>Real-Time Vehicle Tracking</h3>
+                <p>Stay updated with the exact location of your vehicle in real-time. Our advanced tracking system uses GPS technology to provide you with accurate location details, ensuring you’re always in control and aware of your journey’s progress.</p>
+            </div>
+        </div>
+
+        <div class="feature">
+            <div class="feature-image2">
+                <img src="./images/sharing.png" alt="Ride Booking and Sharing">
+            </div>
+            <div class="feature-text">
+                <h3>Ride Booking and Sharing</h3>
+                <p>Experience hassle-free ride booking with our streamlined interface. Simply choose your destination, select your preferred vehicle type, and confirm your ride instantly. Enjoy a smooth and efficient booking process designed for your convenience.</p>
+            </div>
+        </div>
+
+        <div class="feature">
+            <div class="feature-image">
+                <img src="./images/trans.jpg" alt="Goods Transfer">
+            </div>
+            <div class="feature-text">
+                <h3>Goods Transfer</h3>
+                <p>Need to send packages or goods across the city? Our goods transfer service ensures safe and efficient delivery of your items. With real-time tracking and secure handling, you can trust us with your deliveries.</p>
+            </div>
+        </div>
+    </div>
+    <!-- Why Us Section -->
+    <div class="why-section" id="why-us">
+        <h2>Why Choose Us?</h2>
+        <p class="description">
+            We prioritize our clients' comfort and convenience by providing reliable and efficient transport solutions across major cities.
+        </p>
+        <div class="stats">
+            <div class="stat">
+                <div class="image">
+                    <img src="./images/star.png" alt="Satisfied Customers">
+                </div>
+                <h3>1K+</h3>
+                <p class="title">Satisfied Customers</p>
+                <p>Thousands of customers trust our services and rely on us for their daily transportation needs.</p>
+            </div>
+            <div class="stat">
+                <div class="image">
+                    <img src="./images/veh.png" alt="Vehicles (Bus, Rickshaw, Car)">
+                </div>
+                <h3>200+</h3>
+                <p class="title">Vehicles (Bus, Rickshaw, Car)</p>
+                <p>Our diverse fleet includes over 200 vehicles to meet various transportation requirements.</p>
+            </div>
+            <div class="stat">
+                <div class="image">
+                    <img src="./images/loc.png" alt="Major Cities Covered">
+                </div>
+                <h3>5+</h3>
+                <p class="title">Major Cities Covered</p>
+                <p>We operate in more than 5 major cities, making your travels convenient and widespread.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Us Section -->
+    <form id="contactForm" class="contact-form">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required placeholder="Your Full Name">
+    
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required placeholder="Your Email Address">
+    
+        <label for="phone">Phone:</label>
+        <input type="tel" id="phone" name="phone" placeholder="Your Phone Number">
+    
+        <label for="message">Message:</label>
+        <textarea id="message" name="message" required placeholder="Write your message here..." rows="4"></textarea>
+    
+        <button type="submit" class="submit-btn">Send Message</button>
+    </form>
+    
+<!-- Modal for showing messages -->
+<div id="messageModal" class="modal" style="visibility: hidden;">
+    <div class="modal-content">
+        <span id="closeMessageModal" class="close">&times;</span>
+        <p id="messageText"></p>
+    </div>
+</div>
+    <div class="footer">
+        <p>&copy; 2024 On Ride. All Rights Reserved.</p>
+        <p>
+            Follow us: 
+            <span class="social-icons">
+                <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://www.twitter.com" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a href="https://www.instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+            </span>
+        </p>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>

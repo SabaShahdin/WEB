@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transport Management System</title>
+    <!-- Font Awesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="login copy.css">
+</head>
+
+<body>
+    <h2>On Ride</h2>
+    <div class="container" id="container">
+        <!-- Sign Up Form -->
+        <div class="form-container sign-up-container">
+            <form id="signUpForm">
+                <h1>Create Account</h1>
+                <div class="social-container">
+                    <a href="#" class="social" id="google-signup-btn"><i class="fab fa-google"></i></a>
+                </div>
+                <span>or use your email for registration</span>
+                <input type="text" placeholder="Username" id="signUpUsername" required />
+                <input type="email" placeholder="Email" id="signUpEmail" required />
+                <input type="password" placeholder="Password" id="signUpPassword" required />
+                <input type="text" placeholder="Contact Number" id="signUpContact" />
+                <button type="submit">Sign Up</button>
+            </form>
+        </div>
+        <!-- Sign In Form -->
+        <div class="form-container sign-in-container">
+            <form id="loginForm">
+                <h1>Sign in</h1>
+                <div class="social-container">
+                    <a href="#" class="social" id="google-signin-btn"><i class="fab fa-google"></i></a>
+                </div>
+                <span>or use your account</span>
+                <input type="email" placeholder="Email" id="loginEmail" required />
+                <input type="password" placeholder="Password" id="loginPassword" required />
+                <button type="submit">Sign In</button>
+                <a href="#">Forgot your password?</a>
+            </form>
+        </div>
+        <!-- Overlay Panels -->
+        <div class="overlay-container">
+            <div class="overlay">
+                <!-- Overlay for Sign In -->
+                <div class="overlay-panel overlay-left">
+                    <h1>Welcome Back!</h1>
+                    <p>To keep connected with us, please login with your personal info</p>
+                    <button class="ghost" id="signIn">Sign In</button>
+                    <img src="images/buss.png" alt="Bus" class="bus-image" />
+                </div>
+                <!-- Overlay for Sign Up -->
+                <div class="overlay-panel overlay-right">
+                    <h1>Hello, Friend!</h1>
+                    <p>Enter your personal details and start your journey with us</p>
+                    <button class="ghost" id="signUp">Sign Up</button>
+                    <img src="images/buss.png" alt="Bus" class="bus-image" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for showing messages -->
+    <div id="messageModal" class="modal" style="visibility: hidden;">
+        <div class="modal-content">
+            <span id="closeMessageModal" class="close">&times;</span>
+            <p id="messageText"></p>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2024 Transport Management System | All Rights Reserved.</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="login.js"></script>
+</body>
+</html>

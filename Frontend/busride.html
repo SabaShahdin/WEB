@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Page</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .details {
+            margin-bottom: 20px;
+        }
+
+        .details p {
+            margin: 5px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #210440;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #ffbb0f;
+        }
+
+        /* Map styling */
+        #map {
+            height: calc(90vh - 90px);
+            width: 90%;
+            margin-top: 10px;
+        }
+
+
+        /* Modal Content */
+        .modal-content {
+            background-color: #e5d1eb;
+            /* A very light grey for better contrast */
+            padding: 30px;
+            border: 1px solid #210440;
+            /* Matching border color with your button */
+            width: 50%;
+            /* Adjust the width to create a more balanced look */
+            max-width: 500px;
+            /* Set a max-width */
+            text-align: center;
+            border-radius: 10px;
+            /* Slightly larger rounded corners */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            /* Slightly stronger shadow for better visibility */
+            font-family: 'Montserrat', sans-serif;
+            /* Matching website font */
+            color: #210440;
+            /* Dark text for better readability */
+        }
+
+        /* Modal Text */
+        .modal-content p {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #210440;
+            /* Dark text color */
+        }
+
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Payment Information</h2>
+        <div class="details" id="paymentDetails">
+            <!-- Payment details will be displayed here -->
+        </div>
+        <button id="proceedPayment">Proceed to Payment</button>
+    </div>
+    <div id="map"></div>
+    <div id="messageModal" class="modal" style="visibility: hidden;">
+        <div class="modal-content">
+            <span id="closeMessageModal" class="close">&times;</span>
+            <p id="messageText"></p>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    <script>
+
+        let license, routeCoordinates, rideId, passengerId , fare1;
+        let vehicleMarker, routingControl;
+        let vehicleToPickupRouting;
+        document.addEventListener("DOMContentLoaded", function () {
+           
+            retrieveStoredData();  // Retrieve the stored route data and update UI
+        });
+
+        const map = L.map("map").setView([31.5204, 74.3587], 12); // Centered on Lahore
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+        }).addTo(map);
+
+        const icon = L.icon({
+            iconUrl: 'images/vehicleLocation.png',
+            iconSize: [45, 45],
+            iconAnchor: [22, 45],
+            popupAnchor: [0, -30],
+        });
+
+        function retrieveStoredData() {
+            const Data = JSON.parse(localStorage.getItem("Data"));
+            console.log("Retrieved busData from localStorage:", Data);
+
+            const paymentDetailsDiv = document.getElementById("paymentDetails");
+
+            if (Data) {
+
+                routeCoordinates = Data.routeCoordinates;
+                license = Data.lisence;
+                rideId = Data.rideId;
+                passengerId = Data.passengerId;
+                fare1 = parseFloat(Data.selectFare);
+                paymentDetailsDiv.innerHTML = `
+                    
+                    <p><strong>License Plate:</strong> ${license}</p>
+                    <p><strong>License Plate:</strong> ${rideId}</p>
+                    <p><strong>License Plate:</strong> ${passengerId}
+                    </p><p><strong>License Plate:</strong> ${fare1}</p>
+                `;
+            } else {
+                paymentDetailsDiv.innerHTML = `<p>Error: Missing or incomplete data.</p>`;
+            }
+        }
+
+
+        document.getElementById("proceedPayment").addEventListener("click", animateRoute);
+        function completeRideStatus(rideId) {
+            fetch('http://localhost:8081/real/api/update-complete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    rideId: rideId,
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Response from server:', data);
+                    if (data.message) {
+                        showMessage(data.message);
+                    } else {
+                        showMessage('Error updating ride status.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating ride status:', error);
+                });
+        }
+       // Function to handle the form submission
+function updateVehicleStatus() {
+   
+    if (!license) {
+        showMessage("Please provide the license plate number.");
+        return;
+    }
+
+    const data = {
+        licensePlate: license, // Ensure this matches the backend expectation
+    };
+
+    console.log("Data to be sent:", data);
+
+    fetch('http://localhost:8081/real/api/update-bus-seats', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Server responded with status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.error) {
+            showMessage(data.error);
+        } else {
+            showMessage(data.message);
+        }
+    })
+    .catch(error => {
+        console.error("Error during fetch operation:", error);
+        showMessage("An error occurred while updating vehicle status. Please try again later.");
+    });
+}
+   // Function to handle the form submission
+   function updateRideStatus() {
+   
+    if (!license) {
+        showMessage("Please provide the license plate number.");
+        return;
+    }
+
+    const data = {
+        licensePlate: license, // Ensure this matches the backend expectation
+    };
+
+    console.log("Data to be sent:", data);
+
+    fetch('http://localhost:8081/real/api/update-ride-status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Server responded with status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.error) {
+            showMessage(data.error);
+        } else {
+            showMessage(data.message);
+        }
+    })
+    .catch(error => {
+        console.error("Error during fetch operation:", error);
+        showMessage("An error occurred while updating vehicle status. Please try again later.");
+    });
+}
+        function animateRoute() {
+            console.log("[Animation] Animation started. Moving vehicle along the full route from the first stop to the last stop...");
+
+            const mapElement = document.getElementById("map");
+            console.log("[Animation] Map element retrieved:", mapElement);
+
+            mapElement.style.visibility = "visible";
+            console.log("[Animation] Map visibility set to visible");
+
+            // Validate if we have the route coordinates
+            if (!routeCoordinates || routeCoordinates.length === 0) {
+                console.error("[Error] Invalid route coordinates.");
+                showMessage("Error: Invalid route data.");
+                return; // Stop further execution if route coordinates are invalid
+            }
+
+            // Convert routeCoordinates from array of arrays to array of objects if necessary
+            if (Array.isArray(routeCoordinates[0]) && routeCoordinates[0].length === 2) {
+                routeCoordinates = routeCoordinates.map(coord => {
+                    return { lat: coord[0], lng: coord[1] };
+                });
+                console.log("[Debug] Converted routeCoordinates:", routeCoordinates);
+            }
+
+            // Create a blue polyline for the route
+            const routeLine = L.polyline(
+                routeCoordinates.map(coord => [coord.lat, coord.lng]),
+                { color: 'blue', weight: 4, opacity: 0.7 }
+            ).addTo(map);
+            console.log("[Animation] Blue line route created on the map.");
+
+            // Add a marker at each coordinate
+            routeCoordinates.forEach((coord, i) => {
+                if (coord.lat !== undefined && coord.lng !== undefined) {
+                    L.marker([coord.lat, coord.lng])
+                        .addTo(map)
+                        .bindPopup(`Stop ${i + 1}: [${coord.lat}, ${coord.lng}]`);
+                    console.log(`[Animation] Marker added at Stop ${i + 1} - Latitude: ${coord.lat}, Longitude: ${coord.lng}`);
+                } else {
+                    console.error(`[Error] Invalid coordinates at stop ${i + 1}`);
+                }
+            });
+
+            // Create the vehicle marker at the first stop if not already created
+            if (!vehicleMarker) {
+                updateRideStatus();
+                const firstStop = routeCoordinates[0];
+                console.log("[Debug] First stop coordinates:", firstStop);
+
+                if (firstStop && firstStop.lat !== undefined && firstStop.lng !== undefined) {
+                    vehicleMarker = L.marker([firstStop.lat, firstStop.lng], { icon: icon }).addTo(map);
+                    console.log("[Animation] Created new vehicle marker at the first stop:", firstStop);
+                } else {
+                    console.error("[Error] Invalid coordinates for the first stop.");
+                    return; // Stop further execution if the first stop is invalid
+                }
+            }
+
+            let index = 0;
+
+            function animateMarker() {
+                if (index < routeCoordinates.length) {
+                    const stop = routeCoordinates[index];
+
+                    if (stop && stop.lat !== undefined && stop.lng !== undefined) {
+                        const { lat, lng } = stop;
+
+                        // Move the marker to the current position
+                        vehicleMarker.setLatLng([lat, lng]);
+                        console.log(`[Animation] Moving vehicle marker to [Stop ${index + 1}] - Latitude: ${lat}, Longitude: ${lng}`);
+
+                        // Update database with current position
+                        updateDatabase(license, lat, lng);
+
+                        index++;
+                        setTimeout(animateMarker, 1000); // Adjust timing for smoother movement
+                    } else {
+                        console.error(`[Error] Invalid stop at index ${index}.`);
+                    }
+                } else {
+                    console.log("[Animation] Vehicle has reached the final stop.");
+                    showMessage("You have been reached the destination.");
+                    updateVehicleStatus();
+                    
+                payment();
+                }
+            }
+
+            animateMarker();
+        }
+        function updateDatabase(lisenceplate, lat, lng) {
+            console.log(`Updating database for vehicle: ${lisenceplate}, Latitude: ${lat}, Longitude: ${lng}`);
+            fetch('http://localhost:8081/api/update-vehicle-location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    license_plate: lisenceplate,
+                    latitude: lat,
+                    longitude: lng
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Database update successful', data);
+                })
+                .catch(error => {
+                    console.error('Error updating the database:', error);
+                });
+        }
+        async function payment() {
+            try {
+                const preturnUrl = 'http://localhost:5501/Frontend/Final.html'
+                const response = await fetch('http://localhost:8081/payment/pay', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+
+                        amount: fare1 , // Pass the amount (fare) to the backend
+                        meetingDetails: {
+                            passengerId: passengerId,
+                            rideId: rideId,
+                            paymentMethod: 'Credit Card'
+                        },
+                        returnUrl: preturnUrl, // Pass the dynamically constructed return URL
+                    }),
+                });
+        
+                const data = await response.json();
+        
+                // If the payment session is created successfully, redirect to Stripe Checkout
+                if (data.url) {
+                    window.location.href = data.url; // Redirect to Stripe Checkout
+                } else {
+                    showMessage("Error: Payment session could not be created. Please try again.");
+                }
+            } catch (error) {
+                console.error("Error during payment request:", error);
+                showMessage("An error occurred. Please try again.");
+            }
+        }
+// Modal Elements
+        const modal = document.getElementById("messageModal");
+        const messageText = document.getElementById("messageText");
+        const closeModalButton = document.getElementById("closeMessageModal");
+        function showMessage(message) {
+            messageText.textContent = message;
+            modal.style.display = "flex";
+            modal.style.visibility = "visible";
+        }
+        closeModalButton.addEventListener('click', () => {
+            modal.style.display = "none";
+        });
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+    </script>
+</body>
+
+</html>

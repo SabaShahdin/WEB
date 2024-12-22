@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Bus Route</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        input,
+        select,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <form id="busRouteForm">
+        <h2>Register Bus Route</h2>
+
+        <label for="routeName">Route Name:</label>
+        <input type="text" id="routeName" required />
+
+        <label for="startCity">Start City:</label>
+        <input type="text" id="startCity" placeholder="Enter start city" required />
+
+        <label for="destinationCity">Destination City:</label>
+        <input type="text" id="destinationCity" placeholder="Enter destination city" required />
+
+        <label for="numStops">Number of Stops:</label>
+        <input type="number" id="numStops" min="2" required />
+
+        <div id="stopsContainer"></div>
+
+        <label for="distance">Calculated Distance (km):</label>
+        <input type="number" id="distance" readonly />
+
+        <!-- Added Duration input field -->
+        <label for="duration">Estimated Duration (hours):</label>
+        <input type="number" id="duration" min="0" step="0.1" placeholder="Enter duration in hours" required />
+
+        <button type="button" id="fetchAreas">Fetch Areas</button>
+        <button type="button" id="calculateDistance">Calculate Distance</button>
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+            // Get the vehicle_id from sessionStorage
+            const vehicle_id = sessionStorage.getItem('vehicle_id');
+        
+            if (vehicle_id) {
+                console.log('Received vehicle ID:', vehicle_id);
+                // You can now use the vehicle_id for further processing or displaying on the page
+            } else {
+                console.warn('Vehicle ID not found');
+            }
+        
+            const stopsContainer = document.getElementById('stopsContainer');
+            const numStopsInput = document.getElementById('numStops');
+            const fetchAreasButton = document.getElementById('fetchAreas');
+            const calculateDistanceButton = document.getElementById('calculateDistance');
+        
+            let areaOptions = [];
+        
+            // Fetching areas based on the number of stops
+            document.getElementById('numStops').addEventListener('input', async function () {
+                stopsContainer.innerHTML = ''; // Clear existing stops
+                const numStops = parseInt(this.value, 10);
+        
+                if (numStops >= 2) {
+                    try {
+                        const response = await fetch('http://localhost:8081/get-area/areas');
+                        if (!response.ok) {
+                            throw new Error(`Failed to fetch areas. Status: ${response.status}`);
+                        }
+        
+                        const data = await response.json();
+        
+                        if (data.length === 0) {
+                            alert('No areas found in the database.');
+                            return;
+                        }
+        
+                        areaOptions = data.map(item => item.area_name);
+                        console.log('Fetched areas:', areaOptions);
+                        generateDropdowns(numStops, areaOptions);
+                        alert('Areas fetched successfully!');
+                    } catch (error) {
+                        console.error('Error fetching areas:', error);
+                        alert('Failed to fetch areas. Please try again.');
+                    }
+                }
+            });
+        
+            // Function to dynamically generate dropdowns for stops
+            function generateDropdowns(numStops, areaOptions) {
+                stopsContainer.innerHTML = ''; // Clear existing dropdowns
+        
+                for (let i = 0; i < numStops; i++) {
+                    const label = document.createElement('label');
+                    label.textContent = `Stop ${i + 1}:`;
+        
+                    const select = document.createElement('select');
+                    select.className = 'stopSelect';
+                    select.required = true;
+        
+                    areaOptions.forEach(area => {
+                        const option = document.createElement('option');
+                        option.value = area;
+                        option.textContent = area;
+                        select.appendChild(option);
+                    });
+        
+                    stopsContainer.appendChild(label);
+                    stopsContainer.appendChild(select);
+                }
+            }
+        
+            // Calculate distance based on start and end stops
+            calculateDistanceButton.addEventListener('click', function () {
+                const selects = document.querySelectorAll('.stopSelect');
+                const startStop = selects[0]?.value;
+                const endStop = selects[selects.length - 1]?.value;
+        
+                if (!startStop || !endStop) {
+                    alert('Please select start and end stops.');
+                    return;
+                }
+        
+                const distance = Math.abs(startStop.length - endStop.length) * 10; // Example logic
+                document.getElementById('distance').value = distance;
+            });
+        
+            document.getElementById('busRouteForm').addEventListener('submit', async function (event) {
+                event.preventDefault();
+        
+                // Get selected stops from dropdowns
+                const stopSelects = document.querySelectorAll('.stopSelect');
+                const stops = Array.from(stopSelects).map(select => select.value);  // Collect selected stop values
+        
+                const formData = {
+                    route_name: document.getElementById('routeName').value,
+                    origin_city: document.getElementById('startCity').value,  // Assuming this is the origin city input
+                    destination_city: document.getElementById('destinationCity').value,
+                    distance: parseFloat(document.getElementById('distance').value),
+                    duration: parseFloat(document.getElementById('duration').value),
+                    stops: stops,  // Send the stops as an array
+                    vehicle_id: vehicle_id  // Add vehicle_id to the formData
+                };
+        
+                console.log(formData);
+        
+                try {
+                    const response = await fetch('http://localhost:8081/driver/registerBusRoute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData),
+                    });
+                    const result = await response.json();
+                    alert(result.message);
+                    window.loation.href = 'driver.html';
+                } catch (error) {
+                    console.error('Error registering bus route:', error);
+                }
+            });
+    </script>
+</body>
+</html>

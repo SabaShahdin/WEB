@@ -1,0 +1,477 @@
+/* General Body Styling */
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #f5f5f5; /* Lighter background */
+  color: #333;
+}
+h2, h3 {
+  font-family: 'Arial', sans-serif;    font-size: 40px; /* Adjust size as needed */
+  font-weight: bold;
+  font-size: 40px;
+
+  }
+.content-section h3{
+      margin-top: -30px; 
+      color: #210440;
+      
+  }
+  .content-section h2{
+      margin-top:-100px; 
+      color: #0a0214;
+  }
+
+  .about-us {
+    display: flex;
+    flex-direction: column;
+    gap: 60px;
+    padding: 60px 40px;
+    background-color: white; /* Dark, professional background */
+    color: #ffffff;
+  }
+  
+  .about-item {
+    display: flex;
+    align-items: center;
+    gap: 50px;
+  }
+  
+  .about-item.reverse {
+    flex-direction: row-reverse; /* Alternate layout */
+  }
+  
+  .about-item .image {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .about-item .image img {
+    width: 100%;
+    max-width: 600px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Stronger shadow */
+  }
+  
+  .about-item .content {
+    flex: 1;
+  }
+  
+  .about-item .content h1 {
+    font-size: 42px; /* Bigger font size */
+    font-weight: bold;
+    color: #210440; /* Accent color */
+    margin-bottom: 20px;
+  }
+  
+  .about-item .content p {
+    font-size: 22px;
+    font-weight: bold;
+    color: #be9b38; /* Subtle text for contrast */
+    line-height: 1.8;
+  }
+  
+  .about-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
+  }
+  
+  .get-started-button {
+    padding: 18px 40px;
+    background: linear-gradient(90deg, #f9c802, #e09400); /* Gradient button */
+    color: #1e1e2f;
+    font-size: 20px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .get-started-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(249, 200, 2, 0.4); /* Glow effect */
+  }
+  
+  @media (max-width: 768px) {
+    .about-item {
+      flex-direction: column;
+      text-align: center;
+    }
+  
+    .about-item.reverse {
+      flex-direction: column; /* Ensure all items stack on small screens */
+    }
+  
+    .about-item .content {
+      padding: 20px 0;
+    }
+  
+    .about-item .content h1 {
+      font-size: 36px; /* Adjusted for smaller screens */
+    }
+  
+    .about-item .content p {
+      font-size: 18px;
+    }
+  }
+  
+
+
+
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #210440; /* Dark background */
+  padding: 20px 30px;
+  color: white;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+}
+
+.navbar .logo-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  margin: 0;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 30px; /* Space between navbar items */
+}
+
+.navbar-links .nav-link {
+  text-decoration: none;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  transition: color 0.3s;
+}
+
+.navbar-links .nav-link:hover {
+  color: #FFBB00; /* Color change on hover */
+}
+
+/* Profile Section */
+.profile-section {
+  display: flex;
+  align-items: center;
+}
+
+.profile-button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+.profile-button:hover {
+ color:#FFBB00
+}
+
+.profile-button i {
+  font-size: 22px;
+}
+
+/* User info and logout button */
+.user-info {
+  display: none;
+  margin-left: 10px;
+  text-align: right;
+}
+
+.logout-btn {
+  background-color: #ff6600;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: #cc5200;
+}
+
+
+
+
+/* Main content section */
+.main-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 60px);
+  padding: 30px;
+  position: relative;
+  background: #fff;
+  border-radius: 12px; /* Slightly rounded corners for a modern look */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.map-container {
+width: 750px;
+height: 650px;
+border-radius: 2px;
+margin-left: 200px;
+margin-top: 50px; /* Added to move the map down */
+}
+.content-section h2,h3{
+margin-top: 15px;
+}
+
+  /* Filters Section Styling */
+.filter-container {
+display: flex;
+flex-direction: column;
+gap: 16px; /* Adjust spacing between elements */
+padding: 20px;
+background-color: #e5d1eb; /* White background for a clean look */
+border-radius: 12px; /* Smooth rounded corners */
+box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+width: 500px;
+height:450px; /* Set maximum width */
+margin: -20px auto; /* Slightly move upward */
+font-family: 'Segoe UI', sans-serif; /* Match text font style */
+position: relative; /* Ensure it maintains its layout */
+top: -10px; /* Adjust*/
+  
+}
+
+.filter-container label {
+  font-size: 20px; /* Smaller, modern font size */
+  font-weight: bold; /* Make labels prominent */
+  color: #210440; /* Dark color for readability */
+}
+
+.filter-container select {
+  padding: 10px 12px; /* Add internal spacing */
+  font-size: 20px; /* Consistent font size */
+  border: 1px solid #ccc; /* Subtle border */
+  border-radius: 6px; /* Rounded edges */
+  outline: none; /* Remove default outline */
+  transition: border-color 0.3s; /* Smooth border transition */
+}
+
+.filter-container select:focus {
+  border-color: #210440; /* Highlight border on focus */
+}
+
+.filter-btn {
+  padding: 20px 16px; /* Internal padding for the button */
+  font-size: 20px; /* Consistent font size */
+  font-weight: bold; /* Make text stand out */
+  background-color: #210440; /* Match theme with primary color */
+  color: #fff; /* White text */
+  border: none; /* Remove default border */
+  border-radius: 6px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s, transform 0.2s; /* Smooth hover effect */
+  margin-top: 40px;
+}
+
+.filter-btn:hover {
+  background-color: #330860; /* Slightly darker hover effect */
+  color: #FFBB00; /* Change text color to yellow on hover */
+  transform: translateY(-2px); /* Add slight lift on hover */
+}
+
+.filter-btn:active {
+  transform: translateY(0); /* Reset lift on click */
+}
+/* Fade-out animation */
+/* Initial hidden state for sliding out */
+body.slide-out {
+transform: translateX(-100%);
+transition: transform 0.2s ease-in-out; /* Sliding animation */
+}
+
+/* Optional: Sliding-in effect when entering the next page */
+body {
+transform: translateX(0);
+transition: transform 0.2s ease-in-out; /* Match timing for entry effect */
+}
+
+
+/* Book Ride Section */
+.book-ride {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 50px 20px;
+  background: #f5f5f5;
+  margin-top: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.book-ride .left {
+  max-width: 50%;
+}
+
+.book-ride .btn-bookride {
+  background-color: #000;
+  color: white;
+  padding: 12px 35px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
+  transition: background-color 0.3s;
+}
+
+.book-ride .btn-bookride:hover {
+  background-color: #444;
+}
+
+/* Features Section */
+.features-section {
+  padding: 40px 20px;
+  text-align: center;
+  background-color: #fff;
+}
+
+.features-section .section-title {
+  font-size: 24px;
+  margin-bottom: 30px;
+  font-weight: bold;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.feature-item {
+  background: #f5f5f5;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.feature-item .feature-icon {
+  font-size: 40px;
+  margin-bottom: 15px;
+}
+
+.feature-item .feature-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.footer {
+  background-color: #210440;
+  color: #ecf0f1;
+  padding: 40px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.footer-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.footer-section {
+  flex: 1;
+  margin: 0 20px;
+}
+
+.footer-section h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.footer-section p,
+.footer-section ul,
+.footer-section li {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.footer-section a {
+  color: #ecf0f1;
+  text-decoration: none;
+}
+
+.footer-section a:hover {
+  text-decoration: underline;
+  color:#FFBB00;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding: 10px 0;
+  background-color: #210440;
+}
+
+.social-icons a {
+  margin-right: 10px;
+  font-size: 18px;
+  color: #ecf0f1;
+}
+
+.social-icons a:hover {
+  color: #FFBB00;
+}
+/* The Modal (background) */
+.modal {
+  position: fixed;
+  z-index: 9999; /* Ensure it appears above other elements */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Darker background for better contrast */
+  overflow: auto; /* Enable scroll if needed */
+  display: flex; /* Use flex to center modal */
+  justify-content: center; /* Align horizontally center */
+  align-items: center; /* Align vertically center */
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: #e5d1eb; /* A very light grey for better contrast */
+  padding: 30px;
+  border: 1px solid #210440; /* Matching border color with your button */
+  width: 50%; /* Adjust the width to create a more balanced look */
+  max-width: 500px; /* Set a max-width */
+  text-align: center;
+  border-radius: 10px; /* Slightly larger rounded corners */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Slightly stronger shadow for better visibility */
+  font-family: 'Montserrat', sans-serif; /* Matching website font */
+  color: #210440; /* Dark text for better readability */
+}
+
+/* Modal Text */
+.modal-content p {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #210440; /* Dark text color */
+}
+
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+

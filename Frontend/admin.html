@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<style>
+    /* Table container */
+    #vehicle-list {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    /* Table Header */
+    #vehicle-list th {
+        background-color: #210440;
+        /* Match your project theme color */
+        color: white;
+        padding: 12px;
+        text-align: left;
+        font-weight: bold;
+        border: 1px solid #ddd;
+    }
+
+    /* Table Data */
+    #vehicle-list td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    /* Row Hover Effect */
+    #vehicle-list tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    /* Table Odd Row Color */
+    #vehicle-list tr:nth-child(odd) {
+        background-color: #f9f9f9;
+    }
+
+    /* Action Buttons */
+    #vehicle-list button {
+        background-color: #ff4d4d;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
+
+    #vehicle-list button:hover {
+        background-color: #ff3333;
+    }
+
+    /* Responsiveness */
+    @media (max-width: 768px) {
+
+        #vehicle-list th,
+        #vehicle-list td {
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        #vehicle-list {
+            font-size: 14px;
+        }
+
+        /* Stack table columns for smaller screens */
+        #vehicle-list td {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #vehicle-list td::before {
+            content: attr(data-label);
+            font-weight: bold;
+            display: block;
+            margin-bottom: 6px;
+        }
+    }
+</style>
+
+<body>
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">Admin Panel</div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active" onclick="showSection('dashboard')"><i
+                                class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="#" onclick="showSection('customer-management')"><i class="fas fa-users"></i> Customer
+                            Management</a></li>
+                    <li><a href="#" onclick="showSection('driver-management')"><i class="fas fa-car"></i> Driver
+                            Management</a></li>
+                </ul>
+            </nav>
+            <div class="profile-section">
+                <button id="profileButton" class="profile-button">
+                    <i class="fas fa-user-circle"></i>
+                </button>
+                <div id="user-info" class="user-info">
+                    <p id="userName"></p>
+                    <button id="logoutBtn" class="logout-btn">Logout</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="content-section active">
+                <header>
+                    <h1>Welcome, Admin</h1>
+                    <p>Manage your system with ease.</p>
+                </header>
+                <div class="overview">
+                    <div class="card">
+                        <i class="fas fa-user-friends"></i>
+
+                        <h3>Total Customers</h3>
+                         <p class="passenger-count" id="passengerCount">Loading...</p>
+                    </div>
+                    <div class="card">
+                        <i class="fas fa-car-side"></i>
+                        <h3>Active Vehicles</h3>
+                        <p class="vehicles-count" id="vehiclesCount">Loading...</p>
+                    </div>
+                    <div class="card">
+                        <i class="fas fa-car-side"></i>
+                        <h3>Active Drivers</h3>
+                        <p class="driver-count" id="driverCount">Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Management Section -->
+            <div id="customer-management" class="content-section" style="display: none;">
+                <h2>Customer Management</h2>
+                <p>Manage customer details here.</p>
+            </div>
+
+            <!-- Vehicle Management Section -->
+            <div id="driver-management" class="content-section" onclick= fetchPendingDriverRequests() style = "display: none;">
+                <h2>Driver Management</h2>
+                <div id="pending-driver-list"></div>
+            </div>
+                <script>
+                    function toggleLogoutButton() {
+                        const logoutBtn = document.getElementById('logout-btn');
+                        logoutBtn.style.display = logoutBtn.style.display === 'block' ? 'none' : 'block';
+                    }
+
+                    // Logout functionality
+                    function logout() {
+                        alert('Logged out successfully!');
+                    }
+
+                    // Function to show selected section
+                    function showSection(sectionId) {
+                        const sections = document.querySelectorAll('.content-section');
+                        sections.forEach(section => section.style.display = 'none');
+                        document.getElementById(sectionId).style.display = 'block';
+
+                        const links = document.querySelectorAll('.sidebar nav ul li a');
+                        links.forEach(link => link.classList.remove('active'));
+                        document.querySelector(`[onclick="showSection('${sectionId}')"]`).classList.add('active');
+                    }
+                    document.getElementById("profileButton").addEventListener("click", function () {
+                        const userInfo = document.getElementById("user-info");
+                        if (userInfo.style.display === "none" || userInfo.style.display === "") {
+                            fetchUserSession();
+                            userInfo.style.display = "block";
+                        } else {
+                            userInfo.style.display = "none";
+                        }
+                    });
+                    async function fetchUserSession() {
+                        try {
+                            const token = localStorage.getItem('token'); // Get JWT from localStorage
+                            if (!token) {
+                                document.getElementById('user-info').innerHTML = '<p>No user logged in.</p>';
+                                return;
+                            }
+                            const response = await fetch('http://localhost:8081/auth/get-session-user', {
+                                method: 'GET',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            const data = await response.json();
+                            if (data.username) {
+                                // Display user info in a profile format
+                                document.getElementById('user-info').innerHTML = `
+                                    <p><strong>Welcome </strong> ${data.username}</p>
+                                    ${data.email ? `<p><strong>Email:</strong> ${data.email}</p>` : ""}
+                                    <button class = "logout-btn" onclick = "logout()">Logout</button>
+                                `;
+                            } else {
+                                document.getElementById('user-info').innerHTML = '<p>User not found.</p>';
+                            }
+                        } catch (error) {
+
+                            document.getElementById('user-info').innerHTML = `<p>Error fetching user info: ${error.message}</p>`;
+                        }
+                    }
+                    function logout() {
+                        localStorage.removeItem('token');
+                        window.location.href = 'login copy.html';
+                    }
+                    window.onload = () => {
+                        const token = localStorage.getItem('token');
+                        if (!token) {
+                            window.location.href = 'login copy.html';
+                        } else {
+                            fetchUserSession();
+                        }
+                    };
+                </script>
+    <script src="admin.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Panel</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<style>
+    /* Table container */
+    #vehicle-list {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    /* Table Header */
+    #vehicle-list th {
+        background-color: #210440;
+        /* Match your project theme color */
+        color: white;
+        padding: 12px;
+        text-align: left;
+        font-weight: bold;
+        border: 1px solid #ddd;
+    }
+
+    /* Table Data */
+    #vehicle-list td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    /* Row Hover Effect */
+    #vehicle-list tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    /* Table Odd Row Color */
+    #vehicle-list tr:nth-child(odd) {
+        background-color: #f9f9f9;
+    }
+
+    /* Action Buttons */
+    #vehicle-list button {
+        background-color: #ff4d4d;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
+
+    #vehicle-list button:hover {
+        background-color: #ff3333;
+    }
+
+    .vehicle-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+    }
+
+    .vehicle-table th,
+    .vehicle-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+
+    .vehicle-table th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+
+    .vehicle-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .vehicle-table tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .edit-btn,
+    .delete-btn {
+        padding: 5px 10px;
+        margin: 0 5px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .edit-btn {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .delete-btn {
+        background-color: #f44336;
+        color: white;
+    }
+
+    /* Responsiveness */
+    @media (max-width: 768px) {
+
+        #vehicle-list th,
+        #vehicle-list td {
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        #vehicle-list {
+            font-size: 14px;
+        }
+
+        /* Stack table columns for smaller screens */
+        #vehicle-list td {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #vehicle-list td::before {
+            content: attr(data-label);
+            font-weight: bold;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        #ride-info {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #4CAF50;
+            color: white;
+        }
+    }
+</style>
+
+<body>
+    <div class="layout">
+         <!-- Sidebar -->
+         <aside class="sidebar">
+            <div class="logo">Driver Panel</div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active" onclick="showSection('dashboard')"><i
+                                class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="#" onclick="showSection('passenger-management')"><i class="fas fa-users"></i> Passenger
+                            Management</a></li>
+                    <li><a href="#" onclick="showSection('vehicle-management')"><i class="fas fa-car"></i> Vehicle
+                            Management</a></li>
+                </ul>
+            </nav>
+            <div class="profile-section">
+                <button id="profileButton" class="profile-button">
+                    <i class="fas fa-user-circle"></i>
+                </button>
+                <div id="user-info" class="user-info">
+                    <p id="userName"></p>
+                    <button id="logoutBtn" class="logout-btn">Logout</button>
+                </div>
+            </div>
+        </aside>
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="content-section active">
+                <header>
+                    <h1>Welcome </h1>
+                    <div id="user-info" class="user-info">
+                        <p id="userName"></p>
+
+                    </div>
+                    <p>Manage your system with ease.</p>
+                </header>
+                <div class="overview">
+                    <div class="card">
+                        <i class="fas fa-user-friends"></i>
+                        <h3>Total Customers</h3>
+                        <p class="passenger-count" id="passengerCount">Loading...</p>
+                    </div>
+                    <div class="card">
+                        <i class="fas fa-car-side"></i>
+                        <h3>Active Rides</h3>
+                        <p class="ride-status" id="ridestatus">Loading...</p>
+                    </div>
+                    <div class="card">
+                        <i class="fas fa-tasks"></i>
+                        <h3>Total Rides</h3>
+                        <p class="ride-count" id="rideCount">Loading...</p>
+                    </div>
+                    <div class="card">
+                        <i class="fas fa-tasks"></i>
+                        <h3>Total Fare</h3>
+                        <p class="fare" id="fare">Loading...</p>
+                    </div>
+                    <div id="ride-container">
+                        <p>Loading ride data...</p>
+                    </div>
+                </div>
+
+
+                <div id="ride-info">
+                    <p id="ride-request-msg"></p>
+                    <button id="accept-ride-btn" style="display:none;">Accept Ride</button>
+                    <button id="reject-ride-btn" style="display:none;">Reject Ride</button>
+                </div>
+
+                <div class="regi-vehcile">
+                    <button id="register-vehicle-btn" onclick="checkDriverRegistrationStatus()">Register a New
+                        Vehicle</button>
+                </div>
+            </div>
+            <div id="ride-details">
+                <h2>Ride Details</h2>
+                <div id="rides"></div>
+            </div>
+            <div id="ride-info">
+                <p id="ride-request-msg"></p>
+                <button id="accept-ride-btn" style="display:none;">Accept Ride</button>
+                <button id="reject-ride-btn" style="display:none;">Reject Ride</button>
+            </div>
+            <!-- Customer Management Section -->
+            <div id="passenger-management" class="content-section" style="display: none;">
+                <h2>Customer Management</h2>
+                <p>Manage customer details here.</p>
+            </div>
+            <div id="map" style="height: 400px;"></div>
+
+            <!-- Vehicle Management Section -->
+            <div id="vehicle-management" class="content-section" onclick=fetchDriverVehicles() style="display: none;">
+                <h2>Vehicle Management</h2>
+                <div id="vehicle-list"></div>
+            </div>
+            <div id="messageModal" class="modal" style="visibility: hidden;">
+                <div class="modal-content">
+                    <span id="closeMessageModal" class="close">&times;</span>
+                    <p id="messageText"></p>
+                </div>
+            </div>
+            <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+            <script src="driver.js"></script>
+
+</body>
+
+</html>

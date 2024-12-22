@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Vehicle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        input,
+        select,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Profile Section -->
+    <div class="profile-section">
+        <button id="profileButton" class="profile-button">
+            <i class="fa-solid fa-user profile-icon"></i>
+        </button>
+        <div id="user-info" class="user-info">
+            <p id="userName"></p>
+            <button id="logoutBtn" class="logout-btn">Logout</button>
+        </div>
+    </div>
+    </header>
+
+
+
+    <form id="registerVehicleForm">
+        <h2>Register Vehicle</h2>
+        <label for="licensePlate">License Plate:</label>
+        <input type="text" id="licensePlate" required />
+
+        <label for="vehicleType">Vehicle Type:</label>
+        <select id="vehicleType" required>
+            <!-- Populate dynamically -->
+        </select>
+
+        <label for="city">City:</label>
+        <input type="text" id="city" required />
+
+        <label for="area">Area:</label>
+        <input type="text" id="area" required />
+
+        <label for="latitude">Latitude:</label>
+        <input type="number" id="latitude" step="0.000001" required readonly />
+
+        <label for="longitude">Longitude:</label>
+        <input type="number" id="longitude" step="0.000001" required readonly />
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        let user_Id = null;
+        async function fetchUserSession() {
+            try {
+                const token = localStorage.getItem('token'); // Get JWT from localStorage
+                if (!token) {
+                    document.getElementById('user-info').innerHTML = '<p>No user logged in.</p>';
+                    return;
+                }
+                const response = await fetch('http://localhost:8081/auth/get-session-user', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                const data = await response.json();
+                if (data.username) {
+                    // Display user info in a profile format
+                    document.getElementById('user-info').innerHTML = `
+                            <p><strong>Welcome </strong> ${data.username}</p>
+                            ${data.email ? `<p><strong>Email:</strong> ${data.email}</p>` : ''}
+                            <button class="logout-btn" onclick="logout()">Logout</button>
+                        `;
+
+                    // Store username and call getUserId
+                    username = data.username;
+                    console.log('Username:', username);
+
+                    // Call getUserId to fetch and store the user ID
+                    const userId = await getUserId(username);
+                    console.log(userId);
+                    user_Id = userId;
+                    if (userId) {
+                        console.log('User ID:', userId);
+
+                    }
+                } else {
+                    document.getElementById('user-info').innerHTML = '<p>User not found.</p>';
+                }
+            } catch (error) {
+                document.getElementById('user-info').innerHTML = `<p>Error fetching user info: ${error.message}</p>`;
+            }
+        }
+
+        async function getUserId(username) {
+            try {
+                const response = await fetch(`http://localhost:8081/auth/get-driver-id/${encodeURIComponent(username)}`);
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} - ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                // Check for driver_id instead of user_id
+                if (data.driver_id) {
+                    localStorage.setItem('driver_id', data.driver_id); // Store as driver_id for clarity
+                    return data.driver_id;
+                } else {
+                    showMessage('Driver not found');
+                    return null;
+                }
+            } catch (error) {
+                showMessage(`Error fetching driver ID: ${error.message}`);
+                return null;
+            }
+        }
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+        window.onload = () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+            } else {
+                fetchUserSession();
+            }
+        };
+
+
+       
+        const apiUrl = 'http://localhost:8081';
+
+        // Fetch vehicle types and populate dropdown
+        async function fetchVehicleTypes() {
+            try {
+                const response = await fetch(`${apiUrl}/driver/vehicleTypes`);
+                const types = await response.json();
+                const select = document.getElementById('vehicleType');
+                types.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type.vehicle_type_id;
+                    option.textContent = `${type.type_name} (Capacity: ${type.capacity})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching vehicle types:', error);
+            }
+        }
+
+        // Geocode location to get latitude and longitude
+        function geocodeLocation(location, callback) {
+            const queryUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&addressdetails=1`;
+            fetch(queryUrl)
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lon = parseFloat(data[0].lon);
+                        callback([lat, lon]);
+                    } else {
+                        alert("Location not found.");
+                    }
+                })
+                .catch(() => {
+                    alert("Failed to geocode location.");
+                });
+        }
+
+        // Autofill latitude and longitude on area input blur
+        document.getElementById('area').addEventListener('blur', () => {
+            const area = document.getElementById('area').value.trim();
+            if (area) {
+                geocodeLocation(area, ([lat, lon]) => {
+                    document.getElementById('latitude').value = lat;
+                    document.getElementById('longitude').value = lon;
+                });
+            }
+        });
+
+        document.getElementById('registerVehicleForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+        
+            // Get the selected vehicle type
+            const vehicleType = document.getElementById('vehicleType').value;
+        
+            // Prepare form data before checking vehicle type
+            const formData = {
+                license_plate: document.getElementById('licensePlate').value,
+                vehicle_type_id: vehicleType,
+                city: document.getElementById('city').value,
+                area: document.getElementById('area').value,
+                latitude: parseFloat(document.getElementById('latitude').value),
+                longitude: parseFloat(document.getElementById('longitude').value),
+                driver_id: user_Id // Assuming driver_id is fetched correctly
+            };
+        
+            // Check if the selected vehicle type is 'Bus' (assuming 'Bus' is represented by vehicle type 1)
+            if (vehicleType == 1) {
+                try {
+                    // If the vehicle is a bus, register and redirect to busregistration.html
+                    const response = await fetch(`${apiUrl}/driver/registerVehicle`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+        
+                    const result = await response.json();
+                    alert(result.message);
+                    console.log(result);
+        
+                    // Store the vehicle_id in sessionStorage and redirect to busregistration.html
+                    if (result.vehicle_id) {
+                        sessionStorage.setItem('vehicle_id', result.vehicle_id);
+                        window.location.href = 'busregistration.html'; // Redirect to bus registration page
+                    }
+                } catch (error) {
+                    console.error('Error registering vehicle:', error);
+                }
+            } else {
+                try {
+                    // If the vehicle is not a bus, register the vehicle normally
+                    const response = await fetch(`${apiUrl}/driver/registerVehicle`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+        
+                    const result = await response.json();
+                    alert(result.message);
+                    window.location.href = 'driver.html'; // Redirect to driver page after registration
+                } catch (error) {
+                    console.error('Error registering vehicle:', error);
+                }
+            }
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', fetchVehicleTypes);
+        document.getElementById("profileButton").addEventListener("click", function () {
+            const userInfo = document.getElementById("user-info");
+            if (userInfo.style.display === "none" || userInfo.style.display === "") {
+                fetchUserSession();
+                userInfo.style.display = "block";
+            } else {
+                userInfo.style.display = "none";
+            }
+        });
+       
+    </script>
+</body>
+
+</html>

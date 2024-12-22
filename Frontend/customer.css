@@ -1,0 +1,236 @@
+/* General Layout */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  padding: 0;
+  
+ 
+  
+  
+}
+
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #210440; /* Dark background */
+  padding: 20px 30px;
+  color: white;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+}
+
+.navbar .logo-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  margin: 0;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 30px; /* Space between navbar items */
+}
+
+.navbar-links .nav-link {
+  text-decoration: none;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  transition: color 0.3s;
+}
+
+.navbar-links .nav-link:hover {
+  color: #FFBB00; /* Color change on hover */
+}
+
+/* Profile Section */
+.profile-section {
+  display: flex;
+  align-items: center;
+}
+
+.profile-button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+.profile-button:hover {
+ color:#FFBB00
+}
+
+.profile-button i {
+  font-size: 22px;
+}
+
+/* User info and logout button */
+.user-info {
+  display: none;
+  margin-left: 10px;
+  text-align: right;
+}
+
+.logout-btn {
+  background-color: #ff6600;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: #cc5200;
+}
+
+.layout {
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping for smaller screens */
+  height: 100vh;
+}
+
+/* Header Styling */
+header h2 {
+  font-size: 40px;
+  font-weight: bold;
+  color: #210440;
+  text-align: center;
+}
+
+header p {
+  font-size: 24px; /* Adjust the font size */
+  color: white; /* Change the text color */
+  font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  margin-top: 0px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Logo Styling */
+.logo {
+  margin: 20px 0;
+  text-align: center;
+  font-size: 30px;
+  color: #ffbb00;
+  font-weight: bold;
+}
+
+.logo i {
+  margin-top: 10px;
+  font-size: 30px;
+}
+
+/* Main Content Area */
+main {
+  flex-grow: 1;
+  padding: 20px;
+
+  /* Applying a gradient overlay for the purplish touch */
+  background-image: 
+    linear-gradient(rgba(161, 137, 166, 0.5), rgba(149, 106, 158, 0.5)), /* Semi-transparent purple overlay */
+    url('./images/cover.jpg'); /* Original image */
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  /* Optional styling */
+  backdrop-filter: blur(5px); /* Adds a blur effect */
+  border-radius: 10px;
+
+}
+
+header {
+  margin-bottom: 20px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+
+.stat-card {
+  background: #e5d1eb;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s; /* Smooth transition for transform effect */
+}
+
+.stat-card i {
+  font-size: 40px;
+  margin-bottom: 10px;
+  color: #210440;
+}
+
+/* Remove hover background change */
+.stat-card:hover {
+  transform: scale(1.03); /* Slight zoom-in effect */
+}
+
+/* Click effect to bring card to front */
+.stat-card:active {
+  transform: scale(1.05); /* Slightly larger scale when clicked */
+  z-index: 10; /* Bring the card to the front */
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); /* Enhance shadow on click */
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column; /* Stack sidebar and main content */
+  }
+
+  .sidebar {
+    width: 100%; /* Sidebar takes full width */
+    position: relative; /* Reset position for smaller screens */
+  }
+
+  .profile-section {
+    text-align: center;
+    padding: 15px;
+  }
+
+  .stat-card {
+    padding: 15px; /* Adjust padding for smaller screens */
+  }
+
+  header h2 {
+    font-size: 28px; /* Adjust font size for smaller screens */
+  }
+
+  header p {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats {
+    grid-template-columns: repeat(1, 1fr); /* Single-column layout */
+  }
+
+  nav ul li {
+    padding: 10px 20px; /* Reduce padding for smaller devices */
+  }
+
+  .profile-section i {
+    font-size: 40px; /* Reduce icon size */
+  }
+
+  .stat-card i {
+    font-size: 30px; /* Reduce stat icon size */
+  }
+
+  .logout-btn {
+    font-size: 14px; /* Adjust logout button size */
+    padding: 8px 20px;
+  }
+}

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Find Available Vehicles</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="bus.css">
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="header">
+        <h1 class="logo-text">On Ride</h1>
+      </div>
+      <div class="profile-section">
+        <button id="profileButton" class="profile-button">
+          <i class="fa-solid fa-user profile-icon"></i>
+        </button>
+        <div id="user-info" class="user-info">
+          <p id="userName">User Name</p>
+          <button id="logoutBtn" class="logout-btn">Logout</button>
+        </div>
+      </div>
+    </header>
+    <div id="paymentMethodContainer" style="display: none;">
+      <h3>Select Payment Method</h3>
+      <form id="paymentMethodForm">
+          <label>
+              <input type="radio" name="paymentMethod" value="Cash" onclick="selectPaymentMethod('Cash')">
+              Cash
+          </label>
+          <br>
+          <label>
+              <input type="radio" name="paymentMethod" value="Credit Card" onclick="selectPaymentMethod('Credit Card')">
+              Credit Card
+          </label>
+          <br>
+      </form>
+  </div>
+   <!-- Radio Buttons Container -->
+   <div id="seatSelectionContainer" style="display: none;">
+      <p>Select Seat:</p>
+      <form id="seatSelectionForm">
+          <!-- Radio buttons will be dynamically injected here -->
+      </form>
+      <div class="button-container">
+          <button id="nextButton" onclick="show()">Next</button>
+        </div>
+  </div>
+  <!-- Button Container -->
+  <div id="safeJourneyContainer" style="display: none;">
+      <h2>Have a Safe Journey!</h2>
+      <div>
+          <button onclick="cancelRide()">Cancel Ride</button>
+          <button onclick="payment()">Confirm Payment</button>
+      </div>
+  </div>
+ 
+
+     <div class="inputs-container" id="searchSection">
+            <h2>Find Available Vehicles</h2>
+            <input
+              type="text"
+              id="pickupLocation"
+              placeholder="Pickup Location"
+              aria-label="Pickup location"
+              required
+            />
+            <button
+              type="button"
+              id="useCurrentLocationButton"
+              aria-label="Use current location"
+            >
+              Use Current Location
+            </button>
+           
+            <button
+              type="button"
+              id="searchVehiclesButton"
+              aria-label="Find buses"
+            >
+              Find Vehicles
+            </button>
+            
+          </div>
+          <div id="map"></div>
+          <div id="results" aria-live="polite"></div>
+          <div id="selectedVehicle" style="display: none"></div>
+        <select id="destinationDropdown" style="display: none">
+           Options will be dynamically added here 
+        </select>
+        <button 
+          type="button"
+          id="setDestinationBtn"
+          aria-label="Set destination"
+          style="display: none"
+        >
+          Set Destination
+        </button>
+       
+        <div id="select" class = "select"> </div>
+        <div id="messageModal" class="modal" style="visibility: hidden;">
+          <div class="modal-content">
+              <span id="closeMessageModal" class="close">&times;</span>
+              <p id="messageText"></p>
+          </div>
+      </div>
+     
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    <script src="bus.js"></script>
+    <script>
+      document.getElementById("profileButton").addEventListener("click", function() {
+          const userInfo = document.getElementById("user-info");
+          if (userInfo.style.display === "none" || userInfo.style.display === "") {
+              fetchUserSession();
+              userInfo.style.display = "block";
+          } else {
+              userInfo.style.display = "none";
+          }
+      });
+      async function fetchUserSession() {
+          try {
+              const token = localStorage.getItem('token'); // Get JWT from localStorage
+              if (!token) {
+                  document.getElementById('user-info').innerHTML = '<p>No user logged in.</p>';
+                  return;
+              }
+              const response = await fetch('http://localhost:8081/auth/get-session-user', {
+                  method: 'GET',
+                  headers: {
+                      'Authorization': `Bearer ${token}`, 
+                      'Content-Type': 'application/json'
+                  }
+              });
+              const data = await response.json();
+              if (data.username) {
+                  document.getElementById('user-info').innerHTML = `
+                      <p><strong>Welcome </strong> ${data.username}</p>
+                      ${data.email ? `<p><strong>Email:</strong> ${data.email}</p>` : ""}
+                      <button class = "logout-btn" onclick = "logout()">Logout</button>
+                  `;
+                  localStorage.setItem('username', data.username);
+              } else {
+                  document.getElementById('user-info').innerHTML = '<p>User not found.</p>';
+              }
+          } catch (error) {
+              document.getElementById('user-info').innerHTML = `<p>Error fetching user info: ${error.message}</p>`;
+          }
+      }
+      window.onload = () => {
+          fetchUserSession();
+      };
+      function logout() {
+          localStorage.removeItem('token'); 
+          window.location.href = 'login.html';
+      }
+      window.onload = () => {
+          const token = localStorage.getItem('token');
+          if (!token) {
+              window.location.href = 'login.html';
+          } else {
+              fetchUserSession();
+          }
+      };
+  </script>
+  </body>
+</html>

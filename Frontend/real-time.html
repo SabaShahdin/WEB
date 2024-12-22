@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real-Time Vehicle Tracking</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    />
+    <link rel="stylesheet" href="real-time.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+
+    <header class="navbar">
+      <div class="logo">
+        <h1 class="logo-text">On Ride</h1>
+      </div>
+      
+      <div class="navbar-links">
+        <a href="real-time.html" class="nav-link">Home</a>
+        <a href="customer.html" class="nav-link">Ride</a>
+        <a href="#about-us" class="nav-link">About</a>
+      </div>
+    
+ 
+       <!-- Modal for showing messages -->
+       <div id="messageModal" class="modal" style="visibility: hidden;">
+        <div class="modal-content">
+            <span id="closeMessageModal" class="close">&times;</span>
+            <p id="messageText"></p>
+        </div>
+    </div>
+      
+   
+      <!-- Profile Section -->
+      <div class="profile-section">
+        <button id="profileButton" class="profile-button">
+          <i class="fa-solid fa-user profile-icon"></i>
+        </button>
+        <div id="user-info" class="user-info">
+          <p id="userName"></p>
+          <button id="logoutBtn" class="logout-btn">Logout</button>
+        </div>
+      </div>
+    </header>
+   
+    <main class="main-content">
+     
+      <div class="content-section">
+        <h2>Go Anywhere With</h2>
+        <h3>OnRide</h3>  <!-- This is now outside the filter container -->
+        <div class="filter-container">
+          <label for="vehicleFilter">Vehicle Type:</label>
+          <select id="vehicleFilter">
+              <option value="All">All</option>
+              <option value="Car">Car</option>
+              <option value="Rickshaw">Rickshaw</option>
+              <option value="Bus">Bus</option>
+          </select>
+      
+          <label for="statusFilter">Status:</label>
+          <select id="statusFilter">
+              <option value="All">All</option>
+              <option value="Available">Available</option>
+              <option value="In Transit">In Transit</option>
+          </select>
+      
+          <label for="areaFilter">Area:</label>
+          <select id="areaFilter">
+              <option value="All">All</option>
+          </select>
+      
+          <button id="applyFilterButton" class="filter-btn">Apply Filters</button>
+      </div>
+      
+      </div>
+      
+      <div id="map" class="map-container"></div>
+    </main>
+
+    <div id="about-us" class="about-us">
+      <!-- Real-Time Vehicle Tracking -->
+      <div class="about-item">
+        <div class="image">
+          <img src="./images/real2.jpg" alt="Real-Time Vehicle Tracking">
+        </div>
+        <div class="content">
+          <h1>Real-Time Vehicle Tracking</h1>
+          <p>Track your vehicles in real-time with precise location updates, status monitoring, and route history. Stay informed about fleet movements, receive event alerts, and optimize routes for better efficiency.</p>
+        </div>
+      </div>
+    
+      <!-- Ride Sharing -->
+      <div class="about-item reverse">
+        <div class="image">
+          <img src="./images/shar.png" alt="Ride Sharing">
+        </div>
+        <div class="content">
+          <h1>Share Your Ride, Share the Journey</h1>
+          <p>Join our ride-sharing community and connect with people traveling in the same direction. Save on costs and reduce your carbon footprint while meeting new friends on the road.</p>
+        </div>
+      </div>
+    
+      <!-- User-Friendly Platform -->
+      <div class="about-item">
+        <div class="image">
+          <img src="./images/user.jpg" alt="User-Friendly Platform">
+        </div>
+        <div class="content">
+          <h1>User-Friendly Platform</h1>
+          <p>Monitor your fleet in real-time with accurate vehicle locations and status updates, all in one easy-to-use platform.</p>
+        </div>
+      </div>
+    
+      <!-- Intercity & Intracity Rides -->
+      <div class="about-item reverse">
+        <div class="image">
+          <img src="./images/cityy.jpg" alt="City Rides">
+        </div>
+        <div class="content">
+          <h1>Intercity & Intracity Rides</h1>
+          <p>Ensure seamless travel with reliable intercity and intracity services, offering comfort, affordability, and flexible options for all your transportation needs.</p>
+        </div>
+      </div>
+    </div>
+    <div class="about-button-container">
+      <button class="get-started-button" onclick="window.location.href = 'customer.html'">Get Started</button>
+    </div>
+</div>
+    <div class="footer">
+      <div class="footer-container">
+        <!-- Company Info Section -->
+        <div class="footer-section">
+          <h3>About On Ride</h3>
+          <p>
+            On Ride is your go-to platform for reliable, real-time transportation services. From ride-booking to real-time vehicle tracking, we ensure that you get to your destination safely and comfortably.
+          </p>
+        </div>
+    
+        <!-- Quick Links Section -->
+        <div class="footer-section">
+          <h3>Quick Links</h3>
+          <ul>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="services.html">Services</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+          </ul>
+        </div>
+    
+        <!-- Legal Information Section -->
+        <div class="footer-section">
+          <h3>Legal</h3>
+          <ul>
+            <li><a href="terms.html">Terms of Service</a></li>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="cookie-policy.html">Cookie Policy</a></li>
+          </ul>
+        </div>
+    
+        <!-- Social Media Links Section -->
+        <div class="footer-section">
+          <h3>Follow Us</h3>
+          <div class="social-icons">
+            <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://www.twitter.com" target="_blank"><i class="fab fa-twitter"></i></a>
+            <a href="https://www.instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.linkedin.com" target="_blank"><i class="fab fa-linkedin"></i></a>
+          </div>
+        </div>
+      </div>
+    
+      <div class="footer-bottom">
+        <p>&copy; 2024 On Ride. All Rights Reserved.</p>
+      </div>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="real-time.js"></script>
+    <script>
+        document.getElementById("profileButton").addEventListener("click", function() {
+            const userInfo = document.getElementById("user-info");
+            if (userInfo.style.display === "none" || userInfo.style.display === "") {
+                fetchUserSession();
+                userInfo.style.display = "block";
+            } else {
+                userInfo.style.display = "none";
+            }
+        });
+        async function fetchUserSession() {
+            try {
+                const token = localStorage.getItem('token'); // Get JWT from localStorage
+                if (!token) {
+                    document.getElementById('user-info').innerHTML = '<p>No user logged in.</p>';
+                    return;
+                }
+                const response = await fetch('http://localhost:8081/auth/get-session-user', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`, 
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                if (data.username) {
+                    // Display user info in a profile format
+                    document.getElementById('user-info').innerHTML = `
+                        <p><strong>Welcome </strong> ${data.username}</p>
+                        ${data.email ? `<p><strong>Email:</strong> ${data.email}</p>` : ""}
+                        <button class = "logout-btn" onclick = "logout()">Logout</button>
+                    `;
+                } else {
+                    document.getElementById('user-info').innerHTML = '<p>User not found.</p>';
+                }
+            } catch (error) {
+               
+                document.getElementById('user-info').innerHTML = `<p>Error fetching user info: ${error.message}</p>`;
+            }
+        }
+        function logout() {
+            localStorage.removeItem('token'); 
+            window.location.href = 'login.html';
+        }
+        window.onload = () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+            } else {
+                fetchUserSession();
+            }
+        };
+        
+    
+        
+    </script>
+    </body>
+    </html>
