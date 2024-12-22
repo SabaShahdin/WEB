@@ -42,7 +42,7 @@ document.getElementById('loginForm').addEventListener('submit', async function (
   event.preventDefault();
   const email = document.getElementById('loginEmail').value;
   const password = document.getElementById('loginPassword').value;
-  const response = await fetch('http://localhost:8081/auth/signin', {
+  const response = await fetch('web-vert-two.vercel.app/auth/signin', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password })
@@ -66,14 +66,14 @@ async function fetchUserData() {
     return;
   }
   try {
-    const response = await fetch('http://localhost:8081/auth/get-user-data', {
+    const response = await fetch('web-vert-two.vercel.app/auth/get-user-data', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
       }
     });
     if (response.status === 403) {
-      const refreshResponse = await fetch('http://localhost:8081/auth/refresh-token', {
+      const refreshResponse = await fetch('web-vert-two.vercel.app/auth/refresh-token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
